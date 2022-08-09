@@ -1,5 +1,4 @@
 import React, { ReactNode } from "react";
-import logo from "./logo.svg";
 import "./App.css";
 
 type Grid = number[][];
@@ -288,6 +287,9 @@ function CountValues(grid: Grid): number[] {
 function App() {
   const [_, setRandom] = React.useState(0);
   const rerender = () => setRandom(Math.random());
+
+  const [importExportText, setIOtext] = React.useState(ExportGrid(gameGrid));
+
   const [mode, setMode] = React.useState<"placeones" | "manualstep">(
     "placeones"
   );
@@ -319,13 +321,26 @@ function App() {
           onClick={() => {
             const exportString = ExportGrid(gameGrid);
             console.log(exportString);
-            const importGrid = ImportGrid(exportString);
-            console.log(importGrid);
-            gameGrid = importGrid;
+            setIOtext(exportString);
             rerender();
           }}>
           Export
         </button>
+        <button
+          onClick={() => {
+            const importGrid = ImportGrid(importExportText);
+            gameGrid = importGrid;
+            rerender();
+          }}>
+          Import
+        </button>
+        <input
+          value={importExportText}
+          onChange={(ev) => {
+            setIOtext(ev.target.value);
+          }}
+          id='iotext'
+        />
       </div>
       {content}
     </div>
