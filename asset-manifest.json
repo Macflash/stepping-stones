@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/stepping-stones/static/css/main.073c9b0a.css",
+    "main.js": "/stepping-stones/static/js/main.077eb704.js",
+    "static/js/787.67ac89cb.chunk.js": "/stepping-stones/static/js/787.67ac89cb.chunk.js",
+    "index.html": "/stepping-stones/index.html",
+    "main.073c9b0a.css.map": "/stepping-stones/static/css/main.073c9b0a.css.map",
+    "main.077eb704.js.map": "/stepping-stones/static/js/main.077eb704.js.map",
+    "787.67ac89cb.chunk.js.map": "/stepping-stones/static/js/787.67ac89cb.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.073c9b0a.css",
+    "static/js/main.077eb704.js"
+  ]
+}
