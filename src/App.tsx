@@ -329,6 +329,7 @@ function App() {
         <button
           onClick={() => {
             const importGrid = ImportGrid(importExportText);
+            console.log(importGrid);
             gameGrid = importGrid;
             rerender();
           }}>
