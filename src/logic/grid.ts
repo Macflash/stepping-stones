@@ -50,7 +50,7 @@ export function GridOnes(grid: Grid): Grid {
 }
 
 // Returns the bounds of a grid.
-export function GridBounds(grid: Grid): Bounds {
+export function GridBounds(grid: Grid, includeZeroes = false): Bounds {
   const row: Bound = {
     min: Number.MAX_SAFE_INTEGER,
     max: Number.MIN_SAFE_INTEGER,
@@ -61,7 +61,7 @@ export function GridBounds(grid: Grid): Bounds {
   };
 
   GridForEach(grid, (value, r, c) => {
-    if (!value) return;
+    if (!value && !includeZeroes) return;
     row.min = Math.min(r, row.min);
     row.max = Math.max(r, row.max);
     col.min = Math.min(c, col.min);
@@ -77,7 +77,7 @@ export function BoundsForEach(
   callback: (value: number, row: number, col: number) => void,
   extra = 0
 ): void {
-  const bounds = GridBounds(grid);
+  const bounds = GridBounds(grid, true);
   for (let row = bounds.row.min - extra; row <= bounds.row.max + extra; row++) {
     for (
       let col = bounds.col.min - extra;
@@ -87,6 +87,22 @@ export function BoundsForEach(
       callback(GridGet(grid, row, col), row, col);
     }
   }
+}
+
+export function GridNeighborsForEach(
+  grid: Grid,
+  callback: (value: number, row: number, col: number, neighors: Grid) => void
+): void {
+  GridForEach(grid, (value, row, col) => {
+    const neighbors: Grid = [];
+    for (let roff = -1; roff <= 1; roff++) {
+      for (let coff = -1; coff <= 1; coff++) {
+        const neighborValue = GridGet(grid, row + roff, col + coff);
+        GridSet(neighbors, roff, coff, neighborValue);
+      }
+    }
+    callback(value, row, col, neighbors);
+  });
 }
 
 // Returns a grid with the sum of all neighbors, and -1 for already populated cells.
