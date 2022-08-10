@@ -10,10 +10,10 @@ import {
   GridCopy,
   GridCount,
 } from "./logic/grid";
-import { ExportGrid, ImportGrid, N2_GRID, N4_GRID } from "./logic/io";
+import { ExportGrid, ImportGrid, N2_GRID, N4_GRID, N6_GRID } from "./logic/io";
 import { Grid, Bound } from "./logic/types";
 
-var gameGrid: Grid = GridCopy(N2_GRID);
+var gameGrid: Grid = [[1]];
 
 function GridView({
   placed,
@@ -240,7 +240,44 @@ function OnePlacer() {
 
   return (
     <>
-      <div style={{ margin: ".5rem", fontSize: "1.2rem" }}>N: {counts[1]}</div>
+      <div
+        style={{
+          fontSize: "1.2rem",
+          display: "flex",
+        }}>
+        <span
+          style={{
+            margin: ".5rem",
+          }}>
+          N: {counts[1]}
+        </span>
+        <select
+          onChange={(ev) => {
+            switch (ev.target.value) {
+              case "2":
+                gameGrid = GridCopy(N2_GRID);
+                rerender();
+                break;
+              case "4":
+                gameGrid = GridCopy(N4_GRID);
+                rerender();
+                break;
+              case "6":
+                gameGrid = GridCopy(N6_GRID);
+                rerender();
+                break;
+            }
+            ev.target.value = "";
+          }}
+          style={{
+            margin: ".5rem",
+          }}>
+          <option value=''>Load grid...</option>
+          <option value='2'>N=2 16</option>
+          <option value='4'>N=4 38</option>
+          <option value='6'>N=4 60</option>
+        </select>
+      </div>
       <div style={{ flex: "auto", overflow: "auto" }}>
         <GridView
           placed={gameGrid}
