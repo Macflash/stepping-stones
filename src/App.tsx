@@ -12,6 +12,7 @@ import {
   GridOnes,
 } from "./logic/grid";
 import { ExportGrid, ImportGrid, N2_GRID, N4_GRID, N6_GRID } from "./logic/io";
+import { BruteForceGridSolver, SetSolverListener } from "./logic/solvers";
 import { Grid, Bound } from "./logic/types";
 
 var gameGrid: Grid = [[1]];
@@ -304,29 +305,39 @@ function OnePlacer() {
 
 function AddStones() {
   const [_, setRandom] = React.useState(0);
-  const rerender = () => setRandom(Math.random());
+  const rerender = React.useCallback(
+    () => setRandom(Math.random()),
+    [setRandom]
+  );
+
+  React.useEffect(() => {
+    console.log("updating renderer listener");
+    SetSolverListener((bestGrid, isDone) => {
+      console.log("solver listener called. Rerendering...");
+      gameGrid = bestGrid;
+      rerender();
+    });
+  }, [rerender]);
 
   const neighbors = GridSumNeighbors(gameGrid);
 
   const counts = GridCount(gameGrid);
   const possible = GridCount(neighbors);
-  console.log("possible", possible);
 
   const next = counts.length;
   const last = next - 1;
 
   const maxPossible = possible.length - 1;
-  console.log("maxPossible", maxPossible);
 
   const available: boolean[] = [];
   for (let i = next; i <= maxPossible; i++) {
     available[i] = possible[i] > 0;
   }
-  console.log("available", available);
 
   return (
     <>
       <div
+        key='header'
         style={{
           display: "flex",
           justifyContent: "space-around",
@@ -337,6 +348,17 @@ function AddStones() {
         <div style={{ marginRight: "auto" }}>
           Next: <span style={{ color: "red" }}>{next}</span>
         </div>
+        <button
+          onClick={() => {
+            console.log("solving....");
+            BruteForceGridSolver(gameGrid).then((solution) => {
+              console.log("solution", solution);
+              gameGrid = solution;
+              rerender();
+            });
+          }}>
+          Solve
+        </button>
         <div
           style={{
             margin: ".5rem",
@@ -345,14 +367,16 @@ function AddStones() {
           }}>
           Available:{" "}
           {available.map((isPossible, value) => (
-            <span style={{ margin: 4, color: isPossible ? "black" : "red" }}>
+            <span
+              key={value}
+              style={{ margin: 4, color: isPossible ? "black" : "red" }}>
               {value}
             </span>
           ))}
         </div>
       </div>
 
-      <div style={{ flex: "auto", overflow: "auto" }}>
+      <div key='content' style={{ flex: "auto", overflow: "auto" }}>
         <GridView
           placedColors={{ [last > 1 ? last : -1]: "green" }}
           possibleColors={{ [next]: "red" }}
