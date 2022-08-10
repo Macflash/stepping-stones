@@ -305,14 +305,36 @@ function App() {
   }
 
   return (
-    <div>
-      <div>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        position: "absolute",
+        top: 0,
+        right: 0,
+        left: 0,
+        bottom: 0,
+      }}>
+      <div
+        className='Header'
+        style={{
+          display: "flex",
+          justifyContent: "space-around",
+          alignItems: "center",
+          borderBottom: "2px solid grey",
+          marginBottom: 1,
+        }}>
+        <div
+          style={{ margin: ".5rem", fontSize: "1.5rem", marginRight: "auto" }}>
+          Stepping Stones
+        </div>
         <button
           onClick={() => setMode("placeones")}
           disabled={mode == "placeones"}>
           Place ones
         </button>
         <button
+          style={{ marginRight: "auto" }}
           onClick={() => setMode("manualstep")}
           disabled={mode == "manualstep"}>
           Add stones
@@ -328,6 +350,16 @@ function App() {
         </button>
         <button
           onClick={() => {
+            const exportString = ExportGrid(gameGrid);
+            console.log(exportString);
+            setIOtext(exportString);
+            navigator.clipboard.writeText(exportString);
+            rerender();
+          }}>
+          Copy to clipboard
+        </button>
+        <button
+          onClick={() => {
             const importGrid = ImportGrid(importExportText);
             console.log(importGrid);
             gameGrid = importGrid;
@@ -336,6 +368,7 @@ function App() {
           Import
         </button>
         <input
+          style={{ margin: ".5rem" }}
           value={importExportText}
           onChange={(ev) => {
             setIOtext(ev.target.value);
@@ -343,7 +376,7 @@ function App() {
           id='iotext'
         />
       </div>
-      {content}
+      <div style={{ flex: "auto", overflow: "auto" }}>{content}</div>
     </div>
   );
 }
