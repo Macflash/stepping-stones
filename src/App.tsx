@@ -205,6 +205,8 @@ function GridView({
   placed,
   neighbors,
   onClick,
+  placedColors,
+  possibleColors,
 }: {
   placed: Grid;
   neighbors?: Grid;
@@ -214,6 +216,8 @@ function GridView({
     row: number;
     col: number;
   }) => void;
+  placedColors?: { [n: number]: string };
+  possibleColors?: { [n: number]: string };
 }) {
   const size = 40;
   neighbors = neighbors || placed;
@@ -226,6 +230,20 @@ function GridView({
       const isPlaced = neighborValue === -1;
       const value = isPlaced ? gameGrid[row][col] : neighborValue;
       const isEmpty = value == 0;
+      let color = "black";
+      if (isPlaced) {
+        color = placedColors?.[value] || color;
+      } else {
+        color = possibleColors?.[value] || color;
+      }
+
+      const solidColor = isPlaced && color !== "black";
+      const backgroundColor = solidColor
+        ? color
+        : value == 1 && isPlaced
+        ? "#DDD"
+        : "transparent";
+
       tiles.push(
         <div
           onClick={() => {
@@ -238,17 +256,17 @@ function GridView({
           }}
           key={`${row},${col}`}
           style={{
-            backgroundColor: value == 1 && isPlaced ? "#DDD" : "transparent",
+            backgroundColor,
             cursor: isPlaced ? "grab" : "pointer",
             position: "absolute",
-            left: col * size,
-            top: row * size,
-            height: size,
+            left: col * size + 2,
+            top: row * size + 2,
             fontSize: size / 2,
-            width: size,
+            height: size - 4,
+            width: size - 4,
             borderRadius: size,
-            border: isPlaced ? "1px solid black" : "1px solid transparent",
-            color: isPlaced ? "black" : "grey",
+            border: isPlaced ? `1px solid ${color}` : "1px solid transparent",
+            color: solidColor ? "white" : color,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -376,7 +394,15 @@ function App() {
           id='iotext'
         />
       </div>
-      <div style={{ flex: "auto", overflow: "auto" }}>{content}</div>
+      <div
+        style={{
+          flex: "auto",
+          overflow: "auto",
+          display: "flex",
+          flexDirection: "column",
+        }}>
+        {content}
+      </div>
     </div>
   );
 }
@@ -390,18 +416,20 @@ function OnePlacer() {
   const counts = CountValues(gameGrid);
 
   return (
-    <div>
-      <div>N: {counts[1]}</div>
-      <GridView
-        placed={gameGrid}
-        neighbors={neighbors}
-        onClick={({ isPlaced, value, row, col }) => {
-          console.log("clicked", isPlaced, value, row, col);
-          GridSet(gameGrid, row, col, isPlaced ? 0 : 1);
-          rerender();
-        }}
-      />
-    </div>
+    <>
+      <div style={{ margin: ".5rem", fontSize: "1.2rem" }}>N: {counts[1]}</div>
+      <div style={{ flex: "auto", overflow: "auto" }}>
+        <GridView
+          placed={gameGrid}
+          neighbors={neighbors}
+          onClick={({ isPlaced, value, row, col }) => {
+            console.log("clicked", isPlaced, value, row, col);
+            GridSet(gameGrid, row, col, isPlaced ? 0 : 1);
+            rerender();
+          }}
+        />
+      </div>
+    </>
   );
 }
 
@@ -413,50 +441,71 @@ function AddStones() {
 
   const counts = CountValues(gameGrid);
   const possible = CountValues(neighbors);
+  console.log("possible", possible);
 
   const next = counts.length;
+  const last = next - 1;
+
+  const maxPossible = possible.length - 1;
+  console.log("maxPossible", maxPossible);
+
+  const available: boolean[] = [];
+  for (let i = next; i <= maxPossible; i++) {
+    available[i] = possible[i] > 0;
+  }
+  console.log("available", available);
 
   return (
-    <div>
-      <div>Next: {next}</div>
-      <div>
-        Placed:{" "}
-        {counts
-          .map((_, i) => i)
-          .filter((i) => i)
-          .join(", ")}
+    <>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-around",
+          alignItems: "center",
+          fontSize: "1.2rem",
+        }}>
+        <div style={{ margin: ".5rem" }}>N: {counts[1]}</div>
+        <div style={{ marginRight: "auto" }}>
+          Next: <span style={{ color: "red" }}>{next}</span>
+        </div>
+        <div style={{ margin: ".5rem" }}>
+          Available:{" "}
+          {available.map((isPossible, value) => (
+            <span style={{ margin: 4, color: isPossible ? "black" : "red" }}>
+              {value}
+            </span>
+          ))}
+        </div>
       </div>
-      <div>
-        Available:{" "}
-        {possible
-          .map((_, i) => i)
-          .filter((i) => i && !counts[i])
-          .join(", ")}
-      </div>
-      <GridView
-        placed={gameGrid}
-        neighbors={neighbors}
-        onClick={({ isPlaced, value, row, col }) => {
-          console.log("clicked", isPlaced, value, row, col);
 
-          if (value == next - 1 && isPlaced) {
-            // we can go back a step.
-            console.log("cleared tile.");
-            GridSet(gameGrid, row, col, 0);
+      <div style={{ flex: "auto", overflow: "auto" }}>
+        <GridView
+          placedColors={{ [last > 1 ? last : -1]: "green" }}
+          possibleColors={{ [next]: "red" }}
+          placed={gameGrid}
+          neighbors={neighbors}
+          onClick={({ isPlaced, value, row, col }) => {
+            console.log("clicked", isPlaced, value, row, col);
+
+            if (value == next - 1 && isPlaced) {
+              // we can go back a step.
+              console.log("cleared tile.");
+              GridSet(gameGrid, row, col, 0);
+              rerender();
+              return;
+            }
+
+            /// any other values we should ignore clicks!
+            if (value !== next) {
+              return;
+            }
+
+            GridSet(gameGrid, row, col, value);
             rerender();
-            return;
-          }
-
-          /// any other values we should ignore clicks!
-          if (value !== next) {
-            return;
-          }
-
-          GridSet(gameGrid, row, col, value);
-          rerender();
-        }}
-      />
-    </div>
+          }}
+        />
+      </div>
+    </>
   );
 }
 
