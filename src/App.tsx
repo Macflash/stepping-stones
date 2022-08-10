@@ -1,205 +1,19 @@
 import React, { ReactNode } from "react";
 import "./App.css";
+import {
+  GridSet,
+  GridGet,
+  GridBounds,
+  BoundsForEach,
+  GridForEach,
+  GridSumNeighbors,
+  GridCopy,
+  GridCount,
+} from "./logic/grid";
+import { ExportGrid, ImportGrid, N2_GRID, N4_GRID } from "./logic/io";
+import { Grid, Bound } from "./logic/types";
 
-type Grid = number[][];
-
-var gameGrid: Grid = [[1], [], [0, 0, 1]];
-
-function GridGet(grid: Grid, row: number, col: number): number {
-  return (grid[row] && grid[row][col]) || 0;
-}
-
-function GridSet(grid: Grid, row: number, col: number, value: number): void {
-  grid[row] = grid[row] || [];
-  grid[row][col] = value;
-}
-
-function SumNeighbors(grid: Grid): Grid {
-  const sum: Grid = [];
-
-  GridForEach(grid, (value, row, col) => {
-    for (let roff = -1; roff <= 1; roff++) {
-      for (let coff = -1; coff <= 1; coff++) {
-        if (value <= 0) continue;
-        // Set filled cells to -1
-        if (value > 0 && roff === 0 && coff === 0) {
-          GridSet(sum, row, col, -1);
-          continue;
-        }
-
-        const r = row + roff;
-        const c = col + coff;
-        const currentValue = GridGet(sum, r, c);
-        // Skip filled cells that are negative.
-        if (currentValue < 0) continue;
-
-        // add the sum to the tile.
-        GridSet(sum, r, c, currentValue + value);
-      }
-    }
-  });
-
-  return sum;
-}
-
-// Foreach that includes negative indexes
-function GridForEach(
-  grid: Grid,
-  callback: (value: number, row: number, col: number) => void
-): void {
-  for (const row in grid) {
-    for (const col in grid[row]) {
-      callback(grid[row][col], Number(row), Number(col));
-    }
-  }
-}
-
-// Foreach that includes empty tiles within the bounds
-function BoundsForEach(
-  grid: Grid,
-  callback: (value: number, row: number, col: number) => void,
-  extra = 0
-): void {
-  const bounds = Bounds(grid);
-  for (let row = bounds.row.min - extra; row <= bounds.row.max + extra; row++) {
-    for (
-      let col = bounds.col.min - extra;
-      col <= bounds.col.max + extra;
-      col++
-    ) {
-      callback(GridGet(grid, row, col), row, col);
-    }
-  }
-}
-
-interface Bound {
-  min: number;
-  max: number;
-}
-
-interface Bounds {
-  row: Bound;
-  col: Bound;
-}
-
-function Bounds(grid: Grid): Bounds {
-  const row: Bound = {
-    min: Number.MAX_SAFE_INTEGER,
-    max: Number.MIN_SAFE_INTEGER,
-  };
-  const col: Bound = {
-    min: Number.MAX_SAFE_INTEGER,
-    max: Number.MIN_SAFE_INTEGER,
-  };
-
-  GridForEach(grid, (value, r, c) => {
-    if (!value) return;
-    row.min = Math.min(r, row.min);
-    row.max = Math.max(r, row.max);
-    col.min = Math.min(c, col.min);
-    col.max = Math.max(c, col.max);
-  });
-
-  return { row, col };
-}
-
-function ExportGrid(grid: Grid): string {
-  let rowStrs: string[] = [];
-  const bounds = Bounds(grid);
-  for (let row = bounds.row.min; row <= bounds.row.max; row++) {
-    let rowStr = "(";
-
-    let isCountingZeroes = true;
-    let currentZeros = 0;
-    let currentNumbers: number[] = [];
-    let isFirst = true;
-    for (let col = bounds.col.min; col <= bounds.col.max; col++) {
-      const value = GridGet(grid, row, col);
-      if (!value) {
-        if (isCountingZeroes) {
-          currentZeros++;
-          continue;
-        }
-
-        // print list of current numbers
-        rowStr += currentNumbers.join(", ");
-        currentNumbers = [];
-
-        isCountingZeroes = true;
-        currentZeros = 1;
-        continue;
-      }
-
-      if (isCountingZeroes) {
-        if (!isFirst) rowStr += " / ";
-        if (isFirst) isFirst = false;
-        // we reached the end of the zeros, so append the number with a preceding slash
-        rowStr += `${currentZeros}: `;
-        isCountingZeroes = false;
-        currentZeros = 0;
-        currentNumbers = [];
-      }
-
-      currentNumbers.push(value);
-    }
-
-    rowStr += currentNumbers.join(", ");
-    rowStr += ")";
-    rowStrs.push(rowStr);
-  }
-
-  return rowStrs.join(", ");
-}
-
-function ImportGrid(str: string): Grid {
-  const grid: Grid = [];
-  const rows = str
-    .split("(")
-    .filter((s) => s)
-    .map((row) => row.split(")")[0]);
-
-  // each row is like: "0: 12, 8, 3, 2 / 1: 16"
-
-  // numbers before : are counts of zeros
-  // numbers before , are individual cells
-  // trim any white space
-  rows.forEach((row, r) => {
-    grid[r] = [];
-
-    // index in the grid
-    let gridRowIndex = 0;
-    let currentBuffer = "";
-    for (const char of row) {
-      // ignore white space
-      if (char == " ") continue;
-
-      // we found leading zeroes!
-      if (char == ":") {
-        const zeroes = Number(currentBuffer.trim());
-        for (let z = 0; z < zeroes; z++) {
-          grid[r][gridRowIndex] = 0;
-          gridRowIndex++;
-        }
-        currentBuffer = "";
-        continue;
-      }
-
-      // we found a single number
-      if (char == "," || char == "/") {
-        grid[r][gridRowIndex] = Number(currentBuffer.trim());
-        gridRowIndex++;
-        currentBuffer = "";
-        continue;
-      }
-
-      currentBuffer += char;
-    }
-
-    grid[r][gridRowIndex] = Number(currentBuffer.trim());
-  });
-
-  return grid;
-}
+var gameGrid: Grid = GridCopy(N2_GRID);
 
 function GridView({
   placed,
@@ -221,20 +35,31 @@ function GridView({
 }) {
   const size = 40;
   neighbors = neighbors || placed;
-  const bounds = Bounds(neighbors);
+  const bounds = GridBounds(neighbors);
   const tiles: ReactNode[] = [];
 
+  const maxFill = 200;
+  const minFill = 150;
+
+  const max = GridCount(neighbors).length;
+  const min = GridCount(placed).length;
+  // if you are next it's basically black and gets fainter to the max faintness
   BoundsForEach(
     neighbors,
     (neighborValue, row, col) => {
       const isPlaced = neighborValue === -1;
       const value = isPlaced ? gameGrid[row][col] : neighborValue;
       const isEmpty = value == 0;
+
       let color = "black";
       if (isPlaced) {
         color = placedColors?.[value] || color;
       } else {
-        color = possibleColors?.[value] || color;
+        const percent = (value - min) / (max - min);
+        const colorShade = percent * (maxFill - minFill) + minFill;
+        color =
+          possibleColors?.[value] ||
+          `rgb(${colorShade}, ${colorShade}, ${colorShade})`; // "#AAA";
       }
 
       const solidColor = isPlaced && color !== "black";
@@ -292,16 +117,6 @@ function GridView({
   );
 }
 
-function CountValues(grid: Grid): number[] {
-  const counts: number[] = [];
-  GridForEach(grid, (value, row, col) => {
-    counts[value] = counts[value] || 0;
-    counts[value]++;
-  });
-
-  return counts;
-}
-
 function App() {
   const [_, setRandom] = React.useState(0);
   const rerender = () => setRandom(Math.random());
@@ -346,6 +161,14 @@ function App() {
           style={{ margin: ".5rem", fontSize: "1.5rem", marginRight: "auto" }}>
           Stepping Stones
         </div>
+        <button
+          onClick={() => {
+            gameGrid = [[1]];
+            setMode("placeones");
+            rerender();
+          }}>
+          Clear Grid
+        </button>
         <button
           onClick={() => setMode("placeones")}
           disabled={mode == "placeones"}>
@@ -411,9 +234,9 @@ function OnePlacer() {
   const [_, setRandom] = React.useState(0);
   const rerender = () => setRandom(Math.random());
 
-  const neighbors = SumNeighbors(gameGrid);
+  const neighbors = GridSumNeighbors(gameGrid);
 
-  const counts = CountValues(gameGrid);
+  const counts = GridCount(gameGrid);
 
   return (
     <>
@@ -437,10 +260,10 @@ function AddStones() {
   const [_, setRandom] = React.useState(0);
   const rerender = () => setRandom(Math.random());
 
-  const neighbors = SumNeighbors(gameGrid);
+  const neighbors = GridSumNeighbors(gameGrid);
 
-  const counts = CountValues(gameGrid);
-  const possible = CountValues(neighbors);
+  const counts = GridCount(gameGrid);
+  const possible = GridCount(neighbors);
   console.log("possible", possible);
 
   const next = counts.length;
