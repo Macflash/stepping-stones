@@ -184,21 +184,22 @@ function App() {
         <button
           onClick={() => {
             const exportString = ExportGrid(gameGrid);
+            navigator.clipboard.writeText(exportString);
             console.log(exportString);
             setIOtext(exportString);
             rerender();
           }}>
-          Export
+          Copy Grid
         </button>
         <button
           onClick={() => {
-            const exportString = ExportGrid(gameGrid);
+            const exportString = ExportGrid(GridOnes(gameGrid));
+            navigator.clipboard.writeText(exportString);
             console.log(exportString);
             setIOtext(exportString);
-            navigator.clipboard.writeText(exportString);
             rerender();
           }}>
-          Copy to clipboard
+          Copy Ones
         </button>
         <button
           onClick={() => {
