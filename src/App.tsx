@@ -313,7 +313,8 @@ function AddStones() {
   React.useEffect(() => {
     console.log("updating renderer listener");
     SetSolverListener((bestGrid, isDone) => {
-      console.log("solver listener called. Rerendering...");
+      if (isDone) console.log("DONE!!");
+      console.log("rerendering!");
       gameGrid = bestGrid;
       rerender();
     });
