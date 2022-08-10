@@ -39,6 +39,16 @@ export function GridCopy(grid: Grid): Grid {
   return newGrid;
 }
 
+// Deep copies the grid, leaving only ones.
+export function GridOnes(grid: Grid): Grid {
+  const newGrid: Grid = [];
+  GridForEach(grid, (value, row, col) => {
+    if (value != 1) return;
+    GridSet(newGrid, row, col, value);
+  });
+  return newGrid;
+}
+
 // Returns the bounds of a grid.
 export function GridBounds(grid: Grid): Bounds {
   const row: Bound = {

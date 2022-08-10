@@ -9,6 +9,7 @@ import {
   GridSumNeighbors,
   GridCopy,
   GridCount,
+  GridOnes,
 } from "./logic/grid";
 import { ExportGrid, ImportGrid, N2_GRID, N4_GRID, N6_GRID } from "./logic/io";
 import { Grid, Bound } from "./logic/types";
@@ -277,6 +278,13 @@ function OnePlacer() {
           <option value='4'>N=4 38</option>
           <option value='6'>N=4 60</option>
         </select>
+        <button
+          onClick={() => {
+            gameGrid = GridOnes(gameGrid);
+            rerender();
+          }}>
+          Reset to just 1's
+        </button>
       </div>
       <div style={{ flex: "auto", overflow: "auto" }}>
         <GridView
