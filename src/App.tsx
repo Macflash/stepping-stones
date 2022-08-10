@@ -241,7 +241,7 @@ function GridView({
       const backgroundColor = solidColor
         ? color
         : value == 1 && isPlaced
-        ? "#DDD"
+        ? "#CCC"
         : "transparent";
 
       tiles.push(
