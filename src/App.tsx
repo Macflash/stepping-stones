@@ -468,7 +468,12 @@ function AddStones() {
         <div style={{ marginRight: "auto" }}>
           Next: <span style={{ color: "red" }}>{next}</span>
         </div>
-        <div style={{ margin: ".5rem" }}>
+        <div
+          style={{
+            margin: ".5rem",
+            maxWidth: "80%",
+            overflow: "auto",
+          }}>
           Available:{" "}
           {available.map((isPossible, value) => (
             <span style={{ margin: 4, color: isPossible ? "black" : "red" }}>
