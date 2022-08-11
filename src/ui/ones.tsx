@@ -1,4 +1,5 @@
 import React, { ReactNode } from "react";
+import { COLOR_LIST } from "../logic/colors";
 import {
   GridSumNeighbors,
   GridCount,
@@ -62,6 +63,8 @@ export function Ones({
       <GridView
         placed={grid}
         neighbors={neighbors}
+        placedColors={{ ...COLOR_LIST }}
+        possibleColors={{ ...COLOR_LIST, 0: "black" }}
         onClick={({ isPlaced, value, row, col }) => {
           const newGrid = GridCopy(grid);
           GridSet(newGrid, row, col, isPlaced ? 0 : 1);

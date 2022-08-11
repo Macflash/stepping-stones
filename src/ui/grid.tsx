@@ -110,7 +110,7 @@ export function GridView({
             width: size - 4,
             borderRadius: size,
             border: isPlaced ? `1px solid ${color}` : "1px solid transparent",
-            color: solidColor ? "white" : color,
+            color: solidColor ? (color == "white" ? "black" : "white") : color,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

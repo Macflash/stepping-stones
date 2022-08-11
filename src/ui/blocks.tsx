@@ -1,5 +1,6 @@
 import React, { ReactNode } from "react";
 import { BlocksExtract, GridFilter } from "../logic/buildingblock";
+import { COLOR_LIST } from "../logic/colors";
 import {
   GridSumNeighbors,
   GridCount,
@@ -29,8 +30,8 @@ export function Blocks({
             neighbors={g}
             key={i}
             extra={0}
-            placedColors={{ [i]: "red" }}
-            possibleColors={{ 0: "black" }}
+            placedColors={{ ...COLOR_LIST, 1: "black" }}
+            possibleColors={{ ...COLOR_LIST, 0: "black" }}
           />
         </div>
       ))}>
