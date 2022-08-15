@@ -11,7 +11,14 @@ import {
   GridCount,
   GridOnes,
 } from "./logic/grid";
-import { ExportGrid, ImportGrid, N2_GRID, N4_GRID, N6_GRID } from "./logic/io";
+import {
+  ExportGrid,
+  ImportDotFormat,
+  ImportGrid,
+  N2_GRID,
+  N4_GRID,
+  N6_GRID,
+} from "./logic/io";
 import { BruteForceGridSolver, SetSolverListener } from "./logic/solvers";
 import { Grid, Bound } from "./logic/types";
 import { Blocks } from "./ui/blocks";
@@ -109,6 +116,14 @@ function App() {
         </button>
         <button
           onClick={() => {
+            // dot format
+            if (importExportText.indexOf(".") >= 0) {
+              const importGrid = ImportDotFormat(importExportText);
+              console.log(importGrid);
+              setGrid(importGrid);
+              return;
+            }
+
             const importGrid = ImportGrid(importExportText);
             console.log(importGrid);
             setGrid(importGrid);
